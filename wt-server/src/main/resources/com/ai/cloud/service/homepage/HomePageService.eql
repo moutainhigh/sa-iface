@@ -1,0 +1,32 @@
+--[queryPageInfo]
+SELECT AD_PICTURE "adPicture",
+       AD_URL "adUrl",
+       HOMEPAG_SORTED "homePagSorted",
+       POPULA_GOODS "goodsId",
+       CONFIG_ID "conFig",
+       APPLY_AREA "applyArea"
+FROM TM_B_GOODS_PAGE_CONFIG
+WHERE PROVINCE_CODE = ##
+
+--[queryBannerInfo]
+SELECT BANNER_PICTURE "bannerPic",
+       BANNER_URL "bannerUrl"
+FROM TM_B_GOODS_PAGE_BANNER
+WHERE  CONFIG_ID = ##
+
+--[queryChannelName]
+SELECT CHANNEL_NAME "channelName"
+FROM TF_C_CHANNEL
+WHERE CHANNEL_ID = #1#
+AND PROVINCE_ID = #2#
+
+--[queryPageSorted]
+SELECT
+       PARA_CODE2 "pageSorted",
+       PARA_CODE5 "termType"
+FROM TD_B_COMMPARA
+WHERE PARAM_ATTR = '3087'
+  AND PARA_CODE1 IN
+  --for item=item index=index collection=pageSortedList open=( separator=, close=)
+     #item#
+  --end

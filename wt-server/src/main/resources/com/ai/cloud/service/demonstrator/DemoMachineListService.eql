@@ -1,0 +1,143 @@
+-- [qryGoodsBrandList]
+SELECT DISTINCT B.BRAND_CODE "brandCode",
+                B.BRAND_DESC "brandName"
+  FROM CONFIG_TERMINAL C, BASE_TERMINAL B
+ WHERE C.GOODS_ID = B.GOODS_ID
+   AND B.STATE = '1'
+   AND B.BEGIN_TIME <= NOW()
+   AND NOW() <= B.APP_LIMIT_TIME
+   AND C.HALL_ID = #channelId#
+   AND C.DATA_TYPE = '3'
+   AND C.STATE = '1'
+   AND C.AMOUNT > 0
+   AND NOW() <= C.APP_LIMIT_TIME
+ ORDER BY B.BRAND_CODE
+
+-- [qryGoodsModelList]
+SELECT DISTINCT B.MODEL_CODE "modelCode",
+                B.MODEL_DESC "modelName"
+  FROM CONFIG_TERMINAL C, BASE_TERMINAL B
+ WHERE C.GOODS_ID = B.GOODS_ID
+   AND B.STATE = '1'
+   AND B.BEGIN_TIME <= NOW()
+   AND NOW() <= B.APP_LIMIT_TIME
+   AND C.HALL_ID = #channelId#
+   AND C.DATA_TYPE = '3'
+   AND C.STATE = '1'
+   AND C.AMOUNT > 0
+   AND NOW() <= C.APP_LIMIT_TIME
+ ORDER BY B.MODEL_CODE
+
+-- [qryCanApplyGoodsList]
+SELECT B.GOODS_ID "goodsId",
+       B.GOODS_DESC "goodsName",
+       B.BRAND_CODE "brandCode",
+       B.BRAND_DESC "brandName",
+       B.MODEL_CODE "modelCode",
+       B.MODEL_DESC "modelName",
+       C.PROVINCE_CODE "provinceCode",
+       C.CITY_CODE "cityCode",
+       C.HALL_ID "channelId",
+       DATE_FORMAT(C.APP_LIMIT_TIME, '%Y-%m-%d %H:%i:%s') "appLimitTime",
+       C.AMOUNT "stockNum"
+  FROM CONFIG_TERMINAL C, BASE_TERMINAL B
+ WHERE C.GOODS_ID = B.GOODS_ID
+   AND B.STATE = '1'
+   AND B.BEGIN_TIME <= NOW()
+   AND NOW() <= B.APP_LIMIT_TIME
+   AND C.PROVINCE_CODE = #provinceCode#
+   AND C.CITY_CODE = #cityCode#
+   AND C.HALL_ID = #channelId#
+   AND C.DATA_TYPE = '3'
+   AND C.STATE = '1'
+   AND C.AMOUNT > 0
+   AND NOW() <= C.APP_LIMIT_TIME
+   AND NOT EXISTS
+       (
+           SELECT 1 FROM TF_B_DEMONSTRATOR_ORDER O, TF_B_DEMONSTRATOR_ORDER_SUB OS
+            WHERE O.ORDER_ID = OS.ORDER_ID
+              AND OS.GOODS_ID = B.GOODS_ID
+              AND O.APPLY_MODE = '01'
+              AND O.CHANNEL_ID = #channelId#
+              AND O.ORDER_STATE NOT IN (3, 5)
+       )
+   -- isNotEmpty keyword
+      AND B.GOODS_DESC LIKE #keyword:Like#
+   -- end
+   -- isNotEmpty brandCode
+      AND B.BRAND_CODE = #brandCode#
+   -- end
+   -- isNotEmpty modelCode
+      AND B.MODEL_CODE = #modelCode#
+   -- end
+ LIMIT #startIndex#, #pageSize#
+
+-- [qryOrderList]
+SELECT CONCAT(O.ORDER_ID,'') "orderId",
+       O.PROVINCE_CODE "provinceCode",
+       O.CITY_CODE "cityCode",
+       O.STAFF_ID "staffId",
+       O.CHANNEL_ID "channelId",
+       O.APPLY_MODE "applyMode",
+       CASE O.APPLY_MODE
+        WHEN '01' THEN '厂家配置'
+        WHEN '02' THEN '折扣买断'
+        WHEN '03' THEN '租赁租用'
+        ELSE '其他' END
+       AS "applyModeDesc",
+       O.ORDER_STATE "orderState",
+       CASE O.ORDER_STATE
+        WHEN 1 THEN '地市待审核'
+        WHEN 2 THEN '地市审核通过'
+        WHEN 3 THEN '地市审核驳回'
+        WHEN 4 THEN '省份审核通过'
+        WHEN 5 THEN '省份审核驳回'
+        WHEN 6 THEN '已完成'
+        ELSE '其他' END
+       AS "orderStateDesc",
+       O.REFUSE_DESC "refuseDesc",
+       DATE_FORMAT(O.CREATE_TIME, '%Y-%m-%d %H:%i:%s') "createTime",
+       DATE_FORMAT(O.UPDATE_TIME, '%Y-%m-%d %H:%i:%s') "updateTime"
+  FROM TF_B_DEMONSTRATOR_ORDER O
+ WHERE O.CHANNEL_ID = #channelId#
+    -- isNotEmpty applyMode
+       AND O.APPLY_MODE = #applyMode#
+    -- end
+    -- isNotEmpty orderState
+       AND O.ORDER_STATE = #orderState#
+    -- end
+    -- if applyTimeSort == "1"
+       ORDER BY O.CREATE_TIME
+    -- else
+       ORDER BY O.CREATE_TIME DESC
+    -- end
+ LIMIT #startIndex#, #pageSize#
+
+-- [qryGoodsInfoList]
+SELECT CONCAT(S.ORDER_ID, '') "orderId",
+       CONCAT(S.GOODS_ID, '') "goodsId",
+       S.GOODS_NAME "goodsName",
+       S.GOODS_BRAND "goodsBrand",
+       S.GOODS_BRAND_DESC "goodsBrandDesc",
+       S.GOODS_TYPE "goodsType",
+       S.GOODS_TYPE_DESC "goodsTypeDesc",
+       S.APPLY_COUNT "applyCount",
+       S.GOODS_STATE "goodsState",
+       CASE S.GOODS_STATE
+        WHEN '00' THEN ''
+        WHEN '01' THEN '已发货'
+        WHEN '02' THEN '已签收'
+        WHEN '03' THEN '已驳回'
+        ELSE '其他' END
+       AS "goodsStateDesc",
+       DATE_FORMAT(S.CREATE_TIME, '%Y-%m-%d %H:%i:%s') "createTime"
+  FROM TF_B_DEMONSTRATOR_ORDER_SUB S
+ WHERE ORDER_ID = ##
+
+-- [confirmOrder]
+UPDATE TF_B_DEMONSTRATOR_ORDER
+   SET ORDER_STATE = 6,
+       UPDATE_TIME = NOW()
+ WHERE ORDER_ID = #orderId#
+   AND ORDER_STATE = 4
+   AND CHANNEL_ID = #channelId#

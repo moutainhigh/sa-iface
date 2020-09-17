@@ -1,0 +1,86 @@
+--[saveOrderInfo]
+
+INSERT INTO TF_B_DEMONSTRATOR_ORDER(ORDER_ID, PROVINCE_CODE,
+CITY_CODE, STAFF_ID, CHANNEL_ID, APPLY_MODE, ORDER_STATE,CREATE_TIME,UPDATE_TIME,CHANNEL_NAME)
+VALUES (#orderId#,#provinceCode#,#cityCode#,#staffId#,#channelId#,#applyMode#,#orderState#,NOW(), NOW(),#channelName#)
+
+--[saveGoodsInfo]
+INSERT INTO TF_B_DEMONSTRATOR_ORDER_SUB(ORDER_ID, GOODS_NAME, GOODS_ID,
+ APPLY_COUNT, GOODS_STATE, GOODS_BRAND, GOODS_BRAND_DESC, GOODS_TYPE, GOODS_TYPE_DESC , CREATE_TIME)
+ VALUES
+ -- for item=item index=index collection=goodsList separator=, close=
+    (#item.orderId#,
+    #item.goodsName#,
+    #item.goodsId#,
+    #item.applyCount#,
+    #item.goodsState#,
+    #item.goodsBrand#,
+    #item.goodsBrandDesc#,
+    #item.goodsType#,
+    #item.goodsTypeDesc#,
+    NOW()
+    )
+ -- end
+
+--[saveLogInfo]
+INSERT INTO TL_B_DEMONSTRATOR_ORDER_LOG(
+PROVINCE_CODE, ORDER_ID, GOODS_ID, OPERATOR_ID, OPERATOR_NAME,
+ OPERATOR_PHONE, OPERATE_TIME, ORIGINAL_STATE, CURRENT_STATE, GOODS_ORIGINAL_STATE, GOODS_CURRENT_STATE,
+ DEAL_CONTENT, RESULT_CODE, DEAL_TYPE, RESULT_INFO, OPERATOR_TYPE, SHOW_FLAG)
+VALUES(
+    #provinceCode#,#orderId#,#goodsId#,#operatorId#,#operateName#,
+    #operatePhone#,NOW(),#originalState#,#currentState#,#goodsOriginalState#,#goodsCurrentState#,
+    #dealContent#,#resultCode#,#dealType#,#resultInfo#,#operateType#,#showFlag#
+)
+
+
+--[qryOrderGoodsInfo]
+SELECT
+    GOODS_ID
+FROM
+    TF_B_DEMONSTRATOR_ORDER_SUB
+WHERE
+    ORDER_ID IN (SELECT ORDER_ID FROM TF_B_DEMONSTRATOR_ORDER WHERE CHANNEL_ID = ## AND APPLY_MODE = '01' AND ORDER_STATE NOT IN (3,5))
+
+
+
+
+--[qryGoodsInfo]
+
+SELECT GOODS_ID  goodsId,
+       GOODS_DESC goodsDesc,
+       BRAND_CODE brandCode,
+       BRAND_DESC brandDesc,
+       MODEL_CODE modelCode,
+       MODEL_DESC modelDesc
+FROM
+     BASE_TERMINAL
+WHERE
+    BEGIN_TIME <= NOW()
+AND
+    NOW() <= APP_LIMIT_TIME
+AND
+    GOODS_ID IN
+    -- for item=item index=index collection=goodsIdList open=( separator=, close=)
+       #item#
+    -- end
+
+--[qryEffectInfo]
+SELECT
+   amount amount,
+   goods_id goodsId
+FROM
+     CONFIG_TERMINAL
+WHERE
+    HALL_ID = #channelId#
+AND
+    STATE = '1'
+AND
+    APP_LIMIT_TIME >= NOW()
+AND
+    GOODS_ID IN
+-- for item=item index=index collection=goodsIdList open=( separator=, close=)
+       #item#
+-- end
+
+

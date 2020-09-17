@@ -1,0 +1,4 @@
+--[queryKeywordMap]
+select distinct para_code2, para_code5
+  from td_b_commpara
+ where param_attr in ('3087','3088')

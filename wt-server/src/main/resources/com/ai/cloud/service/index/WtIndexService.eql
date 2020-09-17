@@ -1,0 +1,12 @@
+--[isWotingOpen]
+select count(1)
+  from tf_b_woting_info
+ where province_code = #1#
+   and city_code = #2#
+   and channel_id = #3#
+   and state = '1'
+
+--[isWtPageOpen]
+select apply_area
+  from tm_b_goods_page_config
+ where province_code = #1#

@@ -1,0 +1,39 @@
+-- [qryGoodsInfo]
+SELECT B.GOODS_ID "goodsId",
+       B.GOODS_DESC "goodsName",
+       B.BRAND_CODE "brandCode",
+       B.BRAND_DESC "brandName",
+       B.MODEL_CODE "modelCode",
+       B.MODEL_DESC "modelName",
+       C.PROVINCE_CODE "provinceCode",
+       C.CITY_CODE "cityCode",
+       C.HALL_ID "channelId",
+       C.AMOUNT "stockNum",
+       IFNULL(DATE_FORMAT(C.APP_LIMIT_TIME, '%Y-%m-%d %H:%i:%s'), '') "appLimitTime"
+  FROM CONFIG_TERMINAL C, BASE_TERMINAL B
+ WHERE C.GOODS_ID = B.GOODS_ID
+   AND B.STATE = '1'
+   AND B.BEGIN_TIME <= NOW()
+   AND NOW() <= B.APP_LIMIT_TIME
+   AND C.HALL_ID = #channelId#
+   AND C.DATA_TYPE = '3'
+   AND C.STATE = '1'
+   AND C.AMOUNT > 0
+   -- isNotEmpty goodsIdList
+      AND C.GOODS_ID IN
+      -- for item=item index=index collection=goodsIdList open=( separator=, close=)
+         #item#
+      -- end
+   -- end
+   -- isNotEmpty goodsId
+      AND C.GOODS_ID = #goodsId#
+   -- end
+
+-- [qryValidAOrder]
+SELECT COUNT(1)
+ FROM TF_B_DEMONSTRATOR_ORDER O, TF_B_DEMONSTRATOR_ORDER_SUB OS
+ WHERE O.ORDER_ID = OS.ORDER_ID
+   AND O.APPLY_MODE = '01'
+   AND O.ORDER_STATE NOT IN (3, 5)
+   AND O.CHANNEL_ID = #channelId#
+   AND OS.GOODS_ID = #goodsId#

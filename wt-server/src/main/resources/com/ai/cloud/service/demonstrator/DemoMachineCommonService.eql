@@ -1,0 +1,19 @@
+-- [isDirector]
+SELECT COUNT(1)
+  FROM TF_B_DEMO_DIRECTOR
+ WHERE PROVINCE_CODE = #provinceCode#
+   AND CITY_CODE = #eparchyCode#
+   AND CHANNEL_ID = #channelId#
+   AND DEV_ID = #devId#
+
+--[saveLogInfo]
+INSERT INTO TL_B_DEMONSTRATOR_ORDER_LOG
+      (PROVINCE_CODE, ORDER_ID, GOODS_ID, OPERATOR_ID, OPERATOR_NAME,
+       OPERATOR_PHONE, OPERATE_TIME, ORIGINAL_STATE, CURRENT_STATE, GOODS_ORIGINAL_STATE,
+       GOODS_CURRENT_STATE, DEAL_CONTENT, RESULT_CODE, DEAL_TYPE, RESULT_INFO,
+       OPERATOR_TYPE, SHOW_FLAG)
+VALUES
+     (#provinceCode#, #orderId#, #goodsId#, #operatorId#, #operateName#,
+      #operatePhone#, NOW(), #originalState#, #currentState#, #goodsOriginalState#,
+      #goodsCurrentState#, #dealContent#, #resultCode#, #dealType#, #resultInfo#,
+      #operateType#, #showFlag#)

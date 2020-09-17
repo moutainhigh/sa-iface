@@ -1,0 +1,17 @@
+-- [qryPopularSearch]
+SELECT POPULAR_SEARCH
+  FROM TM_B_GOODS_PAGE_CONFIG
+ WHERE PROVINCE_CODE = #1#
+   AND (APPLY_AREA LIKE #2:Like# OR APPLY_AREA = '000')
+ ORDER BY APPLY_AREA DESC
+
+-- [qryPopularSearchInfo]
+SELECT PARA_CODE2 "psName",
+       PARA_CODE5 "psType"
+  FROM TD_B_COMMPARA
+ WHERE PARAM_ATTR = '3087'
+   AND PARA_CODE1 IN
+    -- for item=item index=index collection=psList open=( separator=, close=)
+       #item#
+    -- end
+ ORDER BY PARA_CODE3

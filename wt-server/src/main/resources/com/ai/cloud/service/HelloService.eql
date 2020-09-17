@@ -1,0 +1,11 @@
+-- [queryCountDemo]
+select count(1) from t_ctgr
+
+-- [queryUserInfo]
+select * from tf_f_user where phone_no = ##
+
+-- [queryChannelMainType]
+SELECT CHANNEL_MAIN_TYPE_ID FROM TF_C_CHANNEL WHERE CHANNEL_ID = ##
+
+-- [queryDevBound]
+SELECT BIND_DEV FROM TF_F_REGISTER WHERE PHONE_NO = ##
