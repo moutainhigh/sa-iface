@@ -38,6 +38,7 @@ public class HelloController {
 
     private static final Logger logger = LoggerFactory.getLogger(HelloController.class);
 
+
     @Autowired
     HelloService service;
 
